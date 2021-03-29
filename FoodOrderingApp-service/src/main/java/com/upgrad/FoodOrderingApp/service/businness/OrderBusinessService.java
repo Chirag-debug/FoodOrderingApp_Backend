@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
+
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -26,8 +28,6 @@ public class OrderBusinessService {
     @Autowired
     CustomerBusinessService customerBusinessService;
 
-    @Autowired
-    CustomerEntity customerEntity;
 
     @Autowired
     CustomerAuthDao customerAuthDao;
@@ -164,7 +164,6 @@ public class OrderBusinessService {
         if(orderEntity.getOrderItem() == null) {
             throw new ItemNotFoundException("INF-003","No item by this id exist");
         }
-
 
         OrderEntity savedOrderEntity = orderDao.saveOrder(orderEntity);
         return savedOrderEntity;

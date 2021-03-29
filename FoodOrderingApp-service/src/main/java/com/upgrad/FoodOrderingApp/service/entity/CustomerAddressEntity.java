@@ -8,14 +8,13 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "customer_address")
-<<<<<<< HEAD
-=======
+
 @NamedQueries({
         @NamedQuery(name = "getAllCustomerAddressByCustomer",query = "SELECT c from CustomerAddressEntity c where c.customer = :customerEntity AND c.address.active = :active"),
         @NamedQuery(name = "getCustomerAddressByAddress",query = "SELECT c from CustomerAddressEntity c where c.address = :addressEntity"),
         @NamedQuery(name = "getCustomerAddressEntityByAddress", query = "SELECT c from CustomerAddressEntity c where c.address = :address"),
 })
->>>>>>> AddressControl
+
 public class CustomerAddressEntity {
 
     @Id

@@ -3,6 +3,7 @@ package com.upgrad.FoodOrderingApp.service.entity;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,10 +11,10 @@ import java.util.List;
 @Table(name = "category")
 @NamedQueries({
 
-        @NamedQuery(name = "getCategoryById",query = "SELECT c FROM CategoryEntity c WHERE c.id = :categryId"),
+        @NamedQuery(name = "getCategoryById",query = "SELECT c FROM CategoryEntity c WHERE c.uuid = :categryId"),
         @NamedQuery(name = "getAllCategories",query = "SELECT c FROM CategoryEntity c ORDER BY c.categoryName ASC "),
 })
-public class CategoryEntity {
+public class CategoryEntity implements Serializable {
 
     @Id
     @Column(name = "id")
@@ -65,4 +66,6 @@ public class CategoryEntity {
     public void setItems(List<ItemEntity> items) {
         this.items = items;
     }
+
+
 }

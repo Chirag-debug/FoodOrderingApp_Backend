@@ -1,14 +1,18 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "order_item")
 @NamedQueries({
-
-        @NamedQuery(name = "fetchItemDetails",query = "SELECT o FROM OrderItemEntity o WHERE o.order = :orders ORDER BY LOWER(o.item.itemName) ASC"),
-        @NamedQuery(name = "getItemsByOrders",query = "SELECT o FROM OrderItemEntity o WHERE o.order = :ordersEntity"),
+        // first query changed
+        @NamedQuery(name = "fetchItemDetails",query = "SELECT o FROM OrderItemEntity o WHERE o.orderEntity = :orders ORDER BY o.itemEntity.itemName ASC"),
+        @NamedQuery(name = "getItemsByOrders",query = "SELECT o FROM OrderItemEntity o WHERE o.orderEntity = :ordersEntity"),
 
 })
 public class OrderItemEntity {
@@ -21,12 +25,16 @@ public class OrderItemEntity {
     @Size(max = 200)
     private String uuid;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER) //changed here
     @JoinColumn(name = "order_id")
+    @OnDelete(action = OnDeleteAction.CASCADE) // added here
+    @NotNull                                    // added here
     private OrderEntity orderEntity;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+
+    @ManyToOne(fetch = FetchType.EAGER) //changed here
     @JoinColumn(name = "item_id")
+    @NotNull                            // added here
     private ItemEntity itemEntity;
 
     @Column(name = "Quantity")

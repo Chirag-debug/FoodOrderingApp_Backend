@@ -32,7 +32,7 @@ public class OrderEntity {
     @Column(name = "date")
     private double discount;
 
-    @Column(name = "date")
+    @Column(name = "date", insertable = false, updatable = false) // changed here
     private Timestamp date;
 
     @ManyToOne

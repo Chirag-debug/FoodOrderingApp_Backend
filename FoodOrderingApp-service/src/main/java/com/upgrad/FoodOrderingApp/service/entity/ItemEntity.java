@@ -11,14 +11,14 @@ import java.util.ArrayList;
 import com.upgrad.FoodOrderingApp.service.common.ItemType;
 
 @Entity
-@Table(name = "ITEM")
+@Table(name = "item")
 @NamedQueries({
         @NamedQuery(name = "getItemById",query = "SELECT i FROM ItemEntity i WHERE i.uuid = :uuid"),
 })
 public class ItemEntity implements Serializable {
 
     @Id
-    @Column(name = "id")
+    @Column(name = "id") //changed here
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
@@ -41,11 +41,11 @@ public class ItemEntity implements Serializable {
     @NotNull
     private ItemType type;
 
-    @ManyToMany(mappedBy = "item")
-    private List<RestaurantEntity> restaurants;
-
-    @ManyToMany(mappedBy = "item")
-    private List<CategoryEntity> categories;
+//    @ManyToMany(mappedBy = "item")
+//    private List<RestaurantEntity> restaurants;
+//
+//    @ManyToMany(mappedBy = "item")
+//    private List<CategoryEntity> categories;
 
     public Integer getId() {
         return id;
@@ -83,21 +83,21 @@ public class ItemEntity implements Serializable {
     }
 
 
-    public List<RestaurantEntity> getRestaurants() {
-        return restaurants;
-    }
-
-    public void setRestaurants(List<RestaurantEntity> restaurants) {
-        this.restaurants = restaurants;
-    }
-
-    public List<CategoryEntity> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(List<CategoryEntity> categories) {
-        this.categories = categories;
-    }
+//    public List<RestaurantEntity> getRestaurants() {
+//        return restaurants;
+//    }
+//
+//    public void setRestaurants(List<RestaurantEntity> restaurants) {
+//        this.restaurants = restaurants;
+//    }
+//
+//    public List<CategoryEntity> getCategories() {
+//        return categories;
+//    }
+//
+//    public void setCategories(List<CategoryEntity> categories) {
+//        this.categories = categories;
+//    }
 
     public void setItemName(String itemName) {
         this.itemName = itemName;

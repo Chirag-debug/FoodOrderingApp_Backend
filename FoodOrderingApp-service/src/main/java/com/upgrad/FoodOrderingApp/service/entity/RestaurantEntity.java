@@ -58,11 +58,11 @@ public class RestaurantEntity implements Serializable {
     @NotNull
     private AddressEntity address;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<CategoryEntity> categories;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ItemEntity> items;
+//    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    private List<CategoryEntity> categories;
+//
+//    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    private List<ItemEntity> items;
 
     public Integer getId() {
         return id;
@@ -120,9 +120,9 @@ public class RestaurantEntity implements Serializable {
         this.number_of_customers_rated = number_of_customers_rated;
     }
 
-    public List<CategoryEntity> getCategories() {
-        return categories;
-    }
+//    public List<CategoryEntity> getCategories() {
+//        return categories;
+//    }
 
     @Override
     public int hashCode() {
@@ -139,17 +139,17 @@ public class RestaurantEntity implements Serializable {
         return super.toString();
     }
 
-    public void setCategories(List<CategoryEntity> categories) {
-        this.categories = categories;
-    }
+//    public void setCategories(List<CategoryEntity> categories) {
+//        this.categories = categories;
+//    }
 
-    public List<ItemEntity> getItems() {
-        return items;
-    }
-
-    public void setItems(List<ItemEntity> items) {
-        this.items = items;
-    }
+//    public List<ItemEntity> getItems() {
+//        return items;
+//    }
+//
+//    public void setItems(List<ItemEntity> items) {
+//        this.items = items;
+//    }
 
     public AddressEntity getAddress() {
         return address;
