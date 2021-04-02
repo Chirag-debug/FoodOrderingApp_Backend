@@ -17,9 +17,9 @@ public class OrderItemDao {
     private EntityManager entityManager;
 
 
-    public List<OrderItemEntity> getItemsByOrders(OrderEntity ordersEntity) {
+    public List<OrderItemEntity> getItemsByOrders(final String  orderId) {
         try{
-            List<OrderItemEntity> orderItemEntities = entityManager.createNamedQuery("getItemsByOrders", OrderItemEntity.class).setParameter("ordersEntity",ordersEntity).getResultList();
+            List<OrderItemEntity> orderItemEntities = entityManager.createNamedQuery("getItemsByOrderUuid", OrderItemEntity.class).setParameter("orderUuid",orderId).getResultList();
             return orderItemEntities;
         }catch (NoResultException nre) {
             return null;
@@ -31,12 +31,12 @@ public class OrderItemDao {
         return orderItemEntity;
     }
 
-    public List<OrderItemEntity> fetchItemDetails(OrderEntity ordersEntity) {
-        try {
-            List<OrderItemEntity> orderItemEntities = entityManager.createNamedQuery("fetchItemDetails",OrderItemEntity.class).setParameter("orders",ordersEntity).getResultList();
-            return orderItemEntities;
-        }catch (NoResultException nre){
-            return null;
-        }
-    }
+//    public List<OrderItemEntity> fetchItemDetails(OrderEntity ordersEntity) {
+//        try {
+//            List<OrderItemEntity> orderItemEntities = entityManager.createNamedQuery("fetchItemDetails",OrderItemEntity.class).setParameter("orders",ordersEntity).getResultList();
+//            return orderItemEntities;
+//        }catch (NoResultException nre){
+//            return null;
+//        }
+//    }
 }

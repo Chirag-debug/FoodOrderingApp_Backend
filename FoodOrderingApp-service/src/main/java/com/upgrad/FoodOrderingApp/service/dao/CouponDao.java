@@ -15,7 +15,7 @@ public class CouponDao {
 
     public CouponEntity getCouponDetailsByName(String couponName){
         try{
-            CouponEntity couponEntity = entityManager.createNamedQuery("getCouponDetailsByName",CouponEntity.class).setParameter("couponName",couponName).getSingleResult();
+            CouponEntity couponEntity = entityManager.createNamedQuery("getCouponByName",CouponEntity.class).setParameter("coupon_name",couponName).getSingleResult();
             return couponEntity;
         }catch (NoResultException nre){
             return null;
@@ -24,7 +24,7 @@ public class CouponDao {
 
     public CouponEntity getCouponByCouponId(String couponId) {
         try {
-            CouponEntity couponEntity = entityManager.createNamedQuery("getCouponByCouponId",CouponEntity.class).setParameter("uuid",couponId).getSingleResult();
+            CouponEntity couponEntity = entityManager.createNamedQuery("getCouponById",CouponEntity.class).setParameter("uuid",couponId).getSingleResult();
             return couponEntity;
         }catch (NoResultException nre){
             return null;

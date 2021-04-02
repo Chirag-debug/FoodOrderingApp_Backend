@@ -1,5 +1,9 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -20,7 +24,7 @@ public class CustomerAuthEntity implements Serializable {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "uuid")
@@ -28,7 +32,7 @@ public class CustomerAuthEntity implements Serializable {
     @Size(max = 200)
     private String uuid;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "customer_id")
     @NotNull
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -103,22 +107,25 @@ public class CustomerAuthEntity implements Serializable {
     }
 
 
+    public void setLogoutAt(ZonedDateTime logoutAt) {
+        this.logoutAt = logoutAt;
+    }
+
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return new HashCodeBuilder().append(this).hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        return new EqualsBuilder().append(this,obj).isEquals();
     }
 
     @Override
     public String toString() {
-        return super.toString();
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public void setLogoutAt(ZonedDateTime logoutAt) {
-        this.logoutAt = logoutAt;
-    }
+
+
 }

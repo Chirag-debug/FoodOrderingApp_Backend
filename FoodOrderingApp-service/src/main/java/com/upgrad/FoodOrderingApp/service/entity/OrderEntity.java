@@ -2,6 +2,7 @@ package com.upgrad.FoodOrderingApp.service.entity;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -11,14 +12,13 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 @NamedQueries({
-        @NamedQuery(name = "getOrdersByCustomer",query = "SELECT o FROM OrderEntity o WHERE o.customer = :customer ORDER BY o.date DESC "),
-        @NamedQuery(name = "getOrdersByRestaurant",query = "SELECT o FROM OrderEntity o WHERE o.restauarnt = :restaurant"),
-        @NamedQuery(name = "getOrdersByAddress",query = "SELECT o FROM OrderEntity o WHERE o.address = :address")
+        @NamedQuery(name = "getAllOrdersOfCustomerByUuid", query = "select o from OrderEntity o where o.customer.uuid=:customerUuid"),
+        @NamedQuery(name = "getAllOrdersByRestaurantUUid", query = "select o from OrderEntity o where o.restaurant.uuid=:restaurantUuid"),
 })
-public class OrderEntity {
+public class OrderEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
@@ -29,34 +29,55 @@ public class OrderEntity {
     @Column(name = "bill")
     private double bill;
 
-    @Column(name = "date")
+    @Column(name = "discount")
     private double discount;
 
     @Column(name = "date")
     private Timestamp date;
 
-    @ManyToOne
-    @JoinColumn(name = "coupon_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "coupon_id", nullable = false)
     private CouponEntity coupon;
 
-    @ManyToOne
-    @JoinColumn(name = "restaurant_id")
-    private RestaurantEntity restauarnt;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "restaurant_id", nullable = false)
+    private RestaurantEntity restaurant;
 
-    @ManyToOne
-    @JoinColumn(name = "payment_id")
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "payment_id", nullable = false)
     private PaymentEntity payment;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", nullable = false)
     private CustomerEntity customer;
 
-    @ManyToOne
-    @JoinColumn(name = "address_id")
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "address_id", nullable = false)
     private AddressEntity address;
 
-    @OneToMany(mappedBy = "orderEntity")
-    private List<OrderItemEntity> orderItem;
+    public OrderEntity() {
+
+    }
+
+    public OrderEntity(@Size(max = 200) String uuid, double bill, double discount, Timestamp date, CouponEntity coupon, RestaurantEntity restaurant, PaymentEntity payment, CustomerEntity customer, AddressEntity address) {
+        this.uuid = uuid;
+        this.bill = bill;
+        this.discount = discount;
+        this.date = date;
+        this.coupon = coupon;
+        this.restaurant = restaurant;
+        this.payment = payment;
+        this.customer = customer;
+        this.address = address;
+    }
+
+    public RestaurantEntity getRestaurant() {
+        return restaurant;
+    }
+
+    public void setRestaurant(RestaurantEntity restaurant) {
+        this.restaurant = restaurant;
+    }
 
     public Integer getId() {
         return id;
@@ -106,13 +127,7 @@ public class OrderEntity {
         this.coupon = coupon;
     }
 
-    public RestaurantEntity getRestauarnt() {
-        return restauarnt;
-    }
 
-    public void setRestauarnt(RestaurantEntity restauarnt) {
-        this.restauarnt = restauarnt;
-    }
 
     public PaymentEntity getPayment() {
         return payment;
@@ -138,11 +153,5 @@ public class OrderEntity {
         this.address = address;
     }
 
-    public List<OrderItemEntity> getOrderItem() {
-        return orderItem;
-    }
 
-    public void setOrderItem(List<OrderItemEntity> orderItem) {
-        this.orderItem = orderItem;
-    }
 }

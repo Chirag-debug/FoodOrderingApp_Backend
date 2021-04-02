@@ -5,6 +5,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -13,13 +14,14 @@ import com.upgrad.FoodOrderingApp.service.common.ItemType;
 @Entity
 @Table(name = "ITEM")
 @NamedQueries({
-        @NamedQuery(name = "getItemById",query = "SELECT i FROM ItemEntity i WHERE i.uuid = :uuid"),
+        @NamedQuery(name = "getItems", query = "SELECT i FROM ItemEntity i WHERE i.uuid = :itemUuid order by i.itemName asc"),
+        @NamedQuery(name = "getItemByUuid",query = "SELECT i FROM ItemEntity i WHERE i.uuid = :uuid"),
 })
 public class ItemEntity implements Serializable {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "uuid")
@@ -41,11 +43,14 @@ public class ItemEntity implements Serializable {
     @NotNull
     private ItemType type;
 
-    @ManyToMany(mappedBy = "item")
-    private List<RestaurantEntity> restaurants;
+    @ManyToMany
+    @JoinTable(name = "category_item",
+        joinColumns = @JoinColumn(name = "item_id"),
+        inverseJoinColumns = @JoinColumn(name = "category_id"))
+    private List<CategoryEntity> categories = new LinkedList<CategoryEntity>();
 
-    @ManyToMany(mappedBy = "item")
-    private List<CategoryEntity> categories;
+    @ManyToMany(mappedBy = "order")
+    private List<OrderItemEntity> orders;
 
     public Integer getId() {
         return id;
@@ -82,14 +87,6 @@ public class ItemEntity implements Serializable {
         return super.toString();
     }
 
-
-    public List<RestaurantEntity> getRestaurants() {
-        return restaurants;
-    }
-
-    public void setRestaurants(List<RestaurantEntity> restaurants) {
-        this.restaurants = restaurants;
-    }
 
     public List<CategoryEntity> getCategories() {
         return categories;

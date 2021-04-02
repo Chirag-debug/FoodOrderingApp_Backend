@@ -1,5 +1,6 @@
 package com.upgrad.FoodOrderingApp.service.dao;
 
+import com.upgrad.FoodOrderingApp.service.entity.CustomerAuthEntity;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
 import org.springframework.stereotype.Repository;
 
@@ -22,7 +23,7 @@ public class CustomerDao {
     public CustomerEntity findByContactNumber(final String contactNumber)
     {
         try {
-            CustomerEntity customerEntity = entityManager.createNamedQuery("findByContactNumber", CustomerEntity.class).setParameter("contactNumber", contactNumber).getSingleResult();
+            CustomerEntity customerEntity = entityManager.createNamedQuery("customerByContactNumber", CustomerEntity.class).setParameter("contact_number", contactNumber).getSingleResult();
             return customerEntity;
         }catch (NoResultException nre) {
             return null;
@@ -32,7 +33,7 @@ public class CustomerDao {
     public CustomerEntity findByUuid(final String uuid)
     {
         try {
-            CustomerEntity customerEntity = entityManager.createNamedQuery("findByUuid", CustomerEntity.class).setParameter("uuid", uuid).getSingleResult();
+            CustomerEntity customerEntity = entityManager.createNamedQuery("customerByUuid", CustomerEntity.class).setParameter("uuid", uuid).getSingleResult();
             return customerEntity;
         }catch (NoResultException nre) {
             return null;
@@ -43,6 +44,12 @@ public class CustomerDao {
     public CustomerEntity updateCustomer(final CustomerEntity customerEntity) {
         entityManager.merge(customerEntity);
         return customerEntity;
+    }
+
+    public CustomerAuthEntity createAuthToken(CustomerAuthEntity customerAuthEntity)
+    {
+        entityManager.persist(customerAuthEntity);
+        return customerAuthEntity;
     }
 
 

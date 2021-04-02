@@ -1,53 +1,55 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hibernate.annotations.OrderBy;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "CUSTOMER")
+@Table(name = "customer")
 @NamedQueries(
         {
-                @NamedQuery(name = "findByContactNumber", query = "SELECT c from CustomerEntity c where c.contact_number = :contactNumber"),
-                @NamedQuery(name = "findByUuid", query = "SELECT c from CustomerEntity c where c.uuid = :uuid")
+                @NamedQuery(name = "customerByContactNumber", query = "select u from CustomerEntity u where u.contact_number=:contact_number"),
+                @NamedQuery(name = "customerByFirstname", query = "select u from CustomerEntity u where u.firstName =:firstname"),
+                @NamedQuery(name = "customerByUuid", query = "SELECT c from CustomerEntity c where c.uuid = :uuid")
         }
 )
 public class CustomerEntity implements Serializable {
-
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "uuid")
-    @NotNull
     @Size(max = 200)
     private String uuid;
 
     @Column(name = "firstname")
-    @NotNull
     @Size(max = 30)
-    private String firstname;
+    private String firstName;
 
     @Column(name = "lastname")
     @Size(max = 30)
-    private String lastname;
+    private String lastName;
 
     @Column(name = "email")
-    @Size(max = 30)
+    @Size(max = 50)
     private String email;
 
     @Column(name = "contact_number")
     @Size(max = 30)
-    @NotNull
     private String contact_number;
 
     @Column(name = "password")
     @Size(max = 255)
-    @NotNull
     private String password;
 
     @Column(name = "salt")
@@ -55,14 +57,23 @@ public class CustomerEntity implements Serializable {
     @NotNull
     private String salt;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<AddressEntity> address;
+    @OneToMany(mappedBy = "customer")
+    @OrderBy(clause = "id desc")
+    private List<AddressEntity> addresses;
 
-    public Integer getId() {
+    public List<AddressEntity> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<AddressEntity> addresses) {
+        this.addresses = addresses;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -74,20 +85,20 @@ public class CustomerEntity implements Serializable {
         this.uuid = uuid;
     }
 
-    public String getFirstname() {
-        return firstname;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public String getLastname() {
-        return lastname;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {
@@ -98,12 +109,12 @@ public class CustomerEntity implements Serializable {
         this.email = email;
     }
 
-    public String getContact_number() {
+    public String getContactnumber() {
         return contact_number;
     }
 
-    public void setContact_number(String contact_number) {
-        this.contact_number = contact_number;
+    public void setContactnumber(String contactnumber) {
+        this.contact_number = contactnumber;
     }
 
     public String getPassword() {
@@ -122,26 +133,29 @@ public class CustomerEntity implements Serializable {
         this.salt = salt;
     }
 
-    public List<com.upgrad.FoodOrderingApp.service.entity.AddressEntity> getAddress() {
-        return address;
+    @OneToMany(mappedBy = "customer")
+    private Collection<CustomerAuthEntity> customerAuthEntity;
+
+    public Collection<CustomerAuthEntity> getCustomerAuthTokenEntity() {
+        return customerAuthEntity;
     }
 
-    public void setAddress(List<com.upgrad.FoodOrderingApp.service.entity.AddressEntity> address) {
-        this.address = address;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    public void setCustomerAuthTokenEntity(Collection<CustomerAuthEntity> customerAuthEntity) {
+        this.customerAuthEntity = customerAuthEntity;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        return new EqualsBuilder().append(this, obj).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(this).hashCode();
     }
 
     @Override
     public String toString() {
-        return super.toString();
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }

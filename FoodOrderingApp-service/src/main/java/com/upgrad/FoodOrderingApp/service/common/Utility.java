@@ -57,7 +57,7 @@ public class Utility {
     }
 
     public boolean isValidSignupRequest (CustomerEntity customerEntity)throws SignUpRestrictedException {
-        if (customerEntity.getFirstname() == null || customerEntity.getFirstname() == ""){
+        if (customerEntity.getFirstName() == null || customerEntity.getFirstName() == ""){
             throw new SignUpRestrictedException("SGR-005","Except last name all fields should be filled");
         }
         if(customerEntity.getPassword() == null||customerEntity.getPassword() == ""){
@@ -66,7 +66,7 @@ public class Utility {
         if (customerEntity.getEmail() == null||customerEntity.getEmail() == ""){
             throw new SignUpRestrictedException("SGR-005","Except last name all fields should be filled");
         }
-        if (customerEntity.getContact_number() == null||customerEntity.getContact_number() == ""){
+        if (customerEntity.getContactnumber() == null||customerEntity.getContactnumber() == ""){
             throw new SignUpRestrictedException("SGR-005","Except last name all fields should be filled");
         }
         return true;

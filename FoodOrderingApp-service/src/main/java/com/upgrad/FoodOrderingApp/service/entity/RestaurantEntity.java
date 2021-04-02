@@ -1,38 +1,38 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.HashSet;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "restaurant")
-@NamedQueries({
-
-        @NamedQuery(name = "restaurantsByRating",query = "SELECT r FROM RestaurantEntity r ORDER BY r.customerRating DESC"),
-        @NamedQuery(name = "getRestaurantByUuid",query = "SELECT r FROM RestaurantEntity r WHERE r.uuid = :uuid"),
-        @NamedQuery(name = "restaurantsByName",query = "SELECT r FROM  RestaurantEntity r WHERE LOWER(r.restaurantName) LIKE :restaurant_name_low"),
-})
-
+@NamedQueries(
+        {
+                @NamedQuery(name = "allRestaurants", query = "select r from RestaurantEntity r order by r.customerRating desc"),
+                @NamedQuery(name = "restaurantsByName", query = "select r from RestaurantEntity r where lower(r.restaurantName) like concat('%',lower(:restaurantName),'%') order by r.restaurantName"),
+                @NamedQuery(name = "restaurantByUuid", query = "select r from RestaurantEntity r where r.uuid = :restaurantUuid"),
+        }
+)
 public class RestaurantEntity implements Serializable {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "uuid")
     @Size(max = 200)
-    @NotNull
     private String uuid;
 
     @Column(name = "restaurant_name")
-    @NotNull
     @Size(max = 50)
     private String restaurantName;
 
@@ -42,7 +42,7 @@ public class RestaurantEntity implements Serializable {
 
     @Column(name = "customer_rating")
     @NotNull
-    private double customerRating;
+    private Double customerRating;
 
     @Column(name = "average_price_for_two")
     @NotNull
@@ -50,27 +50,23 @@ public class RestaurantEntity implements Serializable {
 
     @Column(name = "number_of_customers_rated")
     @NotNull
-    private Integer number_of_customers_rated;
+    private Integer numberOfCustomersRated;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @NotNull
+    @OneToOne
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
     private AddressEntity address;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<CategoryEntity> categories;
+    @ManyToMany
+    @JoinTable(name = "restaurant_item", joinColumns = @JoinColumn(name = "restaurant_id"),
+            inverseJoinColumns = @JoinColumn(name = "item_id"))
+    @OrderBy("lower(itemName) asc")
+    private List<ItemEntity> items = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ItemEntity> items;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "restaurant_category", joinColumns = @JoinColumn(name = "restaurant_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @OrderBy("categoryName asc")
+    private List<CategoryEntity> categories = new ArrayList<>();
 
     public String getUuid() {
         return uuid;
@@ -96,51 +92,12 @@ public class RestaurantEntity implements Serializable {
         this.photoUrl = photoUrl;
     }
 
-    public double getCustomerRating() {
-        return customerRating;
+    public AddressEntity getAddress() {
+        return address;
     }
 
-    public void setCustomerRating(double customerRating) {
-        this.customerRating = customerRating;
-    }
-
-    public Integer getAveragePriceForTwo() {
-        return averagePriceForTwo;
-    }
-
-    public void setAveragePriceForTwo(Integer averagePriceForTwo) {
-        this.averagePriceForTwo = averagePriceForTwo;
-    }
-
-    public Integer getNumber_of_customers_rated() {
-        return number_of_customers_rated;
-    }
-
-    public void setNumber_of_customers_rated(Integer number_of_customers_rated) {
-        this.number_of_customers_rated = number_of_customers_rated;
-    }
-
-    public List<CategoryEntity> getCategories() {
-        return categories;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
-    }
-
-    @Override
-    public String toString() {
-        return super.toString();
-    }
-
-    public void setCategories(List<CategoryEntity> categories) {
-        this.categories = categories;
+    public void setAddress(AddressEntity address) {
+        this.address = address;
     }
 
     public List<ItemEntity> getItems() {
@@ -151,13 +108,69 @@ public class RestaurantEntity implements Serializable {
         this.items = items;
     }
 
-    public AddressEntity getAddress() {
-        return address;
+    public List<CategoryEntity> getCategories() {
+        return categories;
     }
 
-    public void setAddress(AddressEntity address) {
-        this.address = address;
+    public void setCategories(List<CategoryEntity> categories) {
+        this.categories = categories;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return new EqualsBuilder().append(this, obj).isEquals();
+    }
 
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(this).hashCode();
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getNumberCustomersRated() {
+        return numberOfCustomersRated;
+    }
+
+    public void setNumberCustomersRated(Integer numberOfCustomersRated) {
+        this.numberOfCustomersRated = numberOfCustomersRated;
+    }
+
+    public Integer getAvgPrice() {
+        return averagePriceForTwo;
+    }
+
+    public void setAvgPrice(Integer averagePriceForTwo) {
+        this.averagePriceForTwo = averagePriceForTwo;
+    }
+
+    public Double getCustomerRating() {
+        return customerRating;
+    }
+
+    public void setCustomerRating(Double customerRating) {
+        this.customerRating = customerRating;
+    }
+
+    @Override
+    public String toString() {
+        return "RestaurantEntity{" +
+                "id=" + id +
+                ", uuid='" + uuid + '\'' +
+                ", restaurantName='" + restaurantName + '\'' +
+                ", photoUrl='" + photoUrl + '\'' +
+                ", customerRating=" + customerRating +
+                ", averagePriceForTwo=" + averagePriceForTwo +
+                ", numberOfCustomersRated=" + numberOfCustomersRated +
+                ", address=" + address +
+                ", items=" + items +
+                ", categories=" + categories +
+                '}';
+    }
 }

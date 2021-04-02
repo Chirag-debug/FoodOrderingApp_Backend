@@ -28,7 +28,7 @@ public class StateDao {
 
     public StateEntity getStateByAddressId(String addressId){
         try{
-            StateEntity stateEntity = entityManager.createNamedQuery("getStateByUuid",StateEntity.class).setParameter("uuid",addressId).getSingleResult();
+            StateEntity stateEntity = entityManager.createNamedQuery("getStateByUuid",StateEntity.class).setParameter("stateUuid",addressId).getSingleResult();
             return stateEntity;
         }catch (NoResultException nre){
             return null;

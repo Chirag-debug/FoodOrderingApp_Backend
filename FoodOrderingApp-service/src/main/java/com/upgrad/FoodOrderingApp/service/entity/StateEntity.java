@@ -1,19 +1,27 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 @Entity
-@Table(name = "STATE")
-@NamedQueries({
-        @NamedQuery(name = "getAllStates",query = "SELECT s from StateEntity s"),
-        @NamedQuery(name = "getStateByUuid", query = "SELECT s from StateEntity s where s.uuid = :uuid")
-})
-public class StateEntity {
+@Table(name = "state")
+@NamedQueries(
+        {
+                @NamedQuery(name = "getAllStates", query = "SELECT s FROM StateEntity s ORDER BY s.stateName asc"),
+                @NamedQuery(name = "getStateByUuid", query = "SELECT s FROM StateEntity s WHERE s.uuid = :stateUuid")
+        }
+)
+public class StateEntity implements Serializable {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "uuid")
@@ -23,7 +31,15 @@ public class StateEntity {
 
     @Column(name = "state_name")
     @Size(max = 30)
+    @NotNull
     private String stateName;
+
+    public StateEntity() { }
+
+    public StateEntity(String stateUuid, String state) {
+        uuid = stateUuid;
+        stateName = state;
+    }
 
     public Integer getId() {
         return id;
@@ -37,21 +53,6 @@ public class StateEntity {
         return uuid;
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
-    }
-
-    @Override
-    public String toString() {
-        return super.toString();
-    }
-
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
@@ -62,5 +63,20 @@ public class StateEntity {
 
     public void setStateName(String stateName) {
         this.stateName = stateName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return new EqualsBuilder().append(this, obj).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(this).hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }

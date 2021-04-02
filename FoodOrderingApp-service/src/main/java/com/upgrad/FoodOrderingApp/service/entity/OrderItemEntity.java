@@ -1,19 +1,22 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "order_item")
 @NamedQueries({
 
-        @NamedQuery(name = "fetchItemDetails",query = "SELECT o FROM OrderItemEntity o WHERE o.order = :orders ORDER BY LOWER(o.item.itemName) ASC"),
-        @NamedQuery(name = "getItemsByOrders",query = "SELECT o FROM OrderItemEntity o WHERE o.order = :ordersEntity"),
-
+        @NamedQuery(name = "getItemsByOrderUuid", query = "select oi from OrderItemEntity oi where oi.order.uuid = :orderUuid"),
 })
-public class OrderItemEntity {
+public class OrderItemEntity implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
@@ -21,16 +24,22 @@ public class OrderItemEntity {
     @Size(max = 200)
     private String uuid;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id")
-    private OrderEntity orderEntity;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private OrderEntity order;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "item_id")
-    private ItemEntity itemEntity;
+    @NotNull
+    private ItemEntity item;
 
-    @Column(name = "Quantity")
+    @Column(name = "quantity")
     private Integer quantity;
+
+    @Column(name = "quantity")
+    @NotNull
+    private Integer price;
 
     public Integer getId() {
         return id;
@@ -40,20 +49,20 @@ public class OrderItemEntity {
         this.id = id;
     }
 
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
+//    public String getUuid() {
+//        return uuid;
+//    }
+//
+//    public void setUuid(String uuid) {
+//        this.uuid = uuid;
+//    }
 
     public ItemEntity getItemEntity() {
-        return itemEntity;
+        return item;
     }
 
     public void setItemEntity(ItemEntity itemEntity) {
-        this.itemEntity = itemEntity;
+        this.item = itemEntity;
     }
 
     public Integer getQuantity() {
@@ -72,14 +81,12 @@ public class OrderItemEntity {
         this.price = price;
     }
 
-    @Column(name = "price")
-    private Integer price;
 
-    public OrderEntity getOrderEntity() {
-        return orderEntity;
+    public OrderEntity getOrder() {
+        return order;
     }
 
-    public void setOrderEntity(OrderEntity orderEntity) {
-        this.orderEntity = orderEntity;
+    public void setOrder(OrderEntity orderEntity) {
+        this.order = orderEntity;
     }
 }

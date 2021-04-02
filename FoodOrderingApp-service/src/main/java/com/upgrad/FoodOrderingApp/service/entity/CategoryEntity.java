@@ -1,23 +1,30 @@
 package com.upgrad.FoodOrderingApp.service.entity;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity
 @Table(name = "category")
 @NamedQueries({
 
-        @NamedQuery(name = "getCategoryById",query = "SELECT c FROM CategoryEntity c WHERE c.id = :categryId"),
-        @NamedQuery(name = "getAllCategories",query = "SELECT c FROM CategoryEntity c ORDER BY c.categoryName ASC "),
+        @NamedQuery(name = "getCategoryByUuid",query = "SELECT c FROM CategoryEntity c WHERE c.uuid = :categoryUuid ORDER BY c.categoryName ASC"),
+        @NamedQuery(name = "getAllCategoriesOrderedByName",query = "SELECT c FROM CategoryEntity c ORDER BY c.categoryName ASC "),
 })
-public class CategoryEntity {
+public class CategoryEntity implements Serializable {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "uuid")
@@ -32,7 +39,13 @@ public class CategoryEntity {
     @ManyToMany
     @JoinTable(name = "category_item", joinColumns = @JoinColumn(name = "category_id"),
         inverseJoinColumns = @JoinColumn(name = "item_id"))
-    private List<ItemEntity> items = new ArrayList<>();
+    @OrderBy("lower(iteName) asc")
+    private List<ItemEntity> items = new LinkedList<>();
+
+    @ManyToMany
+    @JoinTable(name = "restaurant__category", joinColumns = @JoinColumn(name = "category_id"),
+    inverseJoinColumns = @JoinColumn(name = "restaurant_id"))
+    private List<RestaurantEntity> restaurants = new LinkedList<>();
 
     public Integer getId() {
         return id;
@@ -65,4 +78,28 @@ public class CategoryEntity {
     public void setItems(List<ItemEntity> items) {
         this.items = items;
     }
+
+    public List<RestaurantEntity> getRestaurants() {
+        return restaurants;
+    }
+
+    public void setRestaurants(List<RestaurantEntity> restaurants) {
+        this.restaurants = restaurants;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder().append(this).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return new EqualsBuilder().append(this,obj).isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+    }
+
 }

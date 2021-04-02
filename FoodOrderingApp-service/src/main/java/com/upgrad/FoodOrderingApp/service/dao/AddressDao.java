@@ -21,11 +21,11 @@ public class AddressDao {
         return address;
     }
 
-    public List<AddressEntity> getAllAddress()
+    public List<AddressEntity> getAddressesByCustomerUuid(final String customerUuid)
     {
         try {
-            List<AddressEntity> getAllAddress = entityManager.createNamedQuery("getAllAddress", AddressEntity.class).getResultList();
-            return getAllAddress;
+           return  entityManager.createNamedQuery("getAllAddressByCustomerUuid", AddressEntity.class).setParameter("customerUuid",customerUuid).getResultList();
+
         } catch (NoResultException nre) {
             return null;
         }
@@ -33,7 +33,7 @@ public class AddressDao {
 
     public AddressEntity getAddressByAddressId(String addressId){
         try{
-            AddressEntity addressEntity = entityManager.createNamedQuery("getAddressByAddressId",AddressEntity.class).setParameter("uuid", addressId).getSingleResult();
+            AddressEntity addressEntity = entityManager.createNamedQuery("getAddressByUud",AddressEntity.class).setParameter("uuid", addressId).getSingleResult();
             return addressEntity;
         }catch (NoResultException nre){
             return null;

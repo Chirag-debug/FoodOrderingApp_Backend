@@ -15,7 +15,7 @@ public class ItemDao {
 
     public ItemEntity getItemById(String uuid) {
         try {
-            ItemEntity itemEntity = entityManager.createNamedQuery("getItemById", ItemEntity.class).setParameter("uuid", uuid).getSingleResult();
+            ItemEntity itemEntity = entityManager.createNamedQuery("getItemByUuid", ItemEntity.class).setParameter("uuid", uuid).getSingleResult();
             return itemEntity;
         } catch (
                 NoResultException nre) {
