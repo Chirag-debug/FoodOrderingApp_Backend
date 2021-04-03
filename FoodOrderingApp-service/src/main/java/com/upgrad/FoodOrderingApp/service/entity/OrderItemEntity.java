@@ -57,11 +57,11 @@ public class OrderItemEntity implements Serializable {
 //        this.uuid = uuid;
 //    }
 
-    public ItemEntity getItemEntity() {
+    public ItemEntity getItem() {
         return item;
     }
 
-    public void setItemEntity(ItemEntity itemEntity) {
+    public void setItem(ItemEntity itemEntity) {
         this.item = itemEntity;
     }
 

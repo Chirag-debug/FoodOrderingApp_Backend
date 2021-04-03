@@ -124,6 +124,22 @@ public class AddressEntity implements Serializable {
         this.state = state;
     }
 
+    public String getFlatBuilNumber() {
+        return flatBuilNumber;
+    }
+
+    public void setFlatBuilNumber(String flatBuilNumber) {
+        this.flatBuilNumber = flatBuilNumber;
+    }
+
+    public CustomerEntity getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(CustomerEntity customer) {
+        this.customer = customer;
+    }
+
     public AddressEntity(@Size(max = 200) @NotNull String uuid, @Size(max = 255) @NotNull String flatBuilNumber, @Size(max = 255) @NotNull String locality, @Size(max = 30) @NotNull String city, @Size(max = 30) @NotNull String pincode, StateEntity state) {
         this.uuid = uuid;
         this.flatBuilNumber = flatBuilNumber;
