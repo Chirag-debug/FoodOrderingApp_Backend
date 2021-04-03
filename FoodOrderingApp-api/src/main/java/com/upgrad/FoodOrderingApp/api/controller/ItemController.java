@@ -2,8 +2,8 @@ package com.upgrad.FoodOrderingApp.api.controller;
 
 import com.upgrad.FoodOrderingApp.api.model.ItemList;
 import com.upgrad.FoodOrderingApp.api.model.ItemListResponse;
-import com.upgrad.FoodOrderingApp.service.businness.ItemBusinessService;
-import com.upgrad.FoodOrderingApp.service.businness.RestaurantBusinessService;
+import com.upgrad.FoodOrderingApp.service.businness.ItemService;
+import com.upgrad.FoodOrderingApp.service.businness.RestaurantService;
 import com.upgrad.FoodOrderingApp.service.entity.ItemEntity;
 import com.upgrad.FoodOrderingApp.service.entity.RestaurantEntity;
 import com.upgrad.FoodOrderingApp.service.exception.RestaurantNotFoundException;
@@ -25,27 +25,28 @@ import java.util.UUID;
 public class ItemController {
 
     @Autowired
-    ItemBusinessService itemBusinessService;
+    ItemService itemService;
 
     @Autowired
-    RestaurantBusinessService restaurantBusinessService;
+    RestaurantService restaurantService;
 
     @RequestMapping(method = RequestMethod.GET, path = "/item/restaurant/{restaurant_id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ItemListResponse> getItemByPopularity(@PathVariable("restaurant_id")final String restaurant_id)throws RestaurantNotFoundException {
 
-        RestaurantEntity restaurantEntity = restaurantBusinessService.restaurantByuuid(restaurant_id);
+        RestaurantEntity restaurantEntity = restaurantService.restaurantByUUID(restaurant_id);
 
-        List<ItemEntity> itemEntities = itemBusinessService.getItemByPopularity(restaurantEntity);
+        List<ItemEntity> itemEntities = itemService.getItemsByPopularity(restaurantEntity);
 
         ItemListResponse itemListResponse = new ItemListResponse();
-        itemEntities.forEach(itemEntity -> {
+        for (ItemEntity itemEntity : itemEntities) {
             ItemList itemList = new ItemList()
                     .id(UUID.fromString(itemEntity.getUuid()))
-                    .itemName(itemEntity.getItemName());
+                    .itemName(itemEntity.getItemName())
+                    .price(itemEntity.getPrice())
+                    .itemType(ItemList.ItemTypeEnum.fromValue(itemEntity.getType().getValue()));
             itemListResponse.add(itemList);
-        });
-
-        return new ResponseEntity<ItemListResponse>(itemListResponse, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(itemListResponse, HttpStatus.OK);
     }
 
 }

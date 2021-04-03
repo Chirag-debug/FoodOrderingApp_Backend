@@ -8,184 +8,207 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.ZonedDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
-
-@CrossOrigin
-@Controller
+@RestController
+@RequestMapping
 public class OrderController {
 
-    @Autowired
-    CustomerBusinessService customerBusinessService;
 
     @Autowired
-    OrderBusinessService orderBusinessService;
+    private CustomerService customerService;
 
     @Autowired
-    PaymentBusinessService paymentBusinessService;
+    private OrderService orderService;
 
     @Autowired
-    AddressBusinessService addressBusinessService;
+    private ItemService itemService;
 
     @Autowired
-    RestaurantBusinessService restaurantBusinessService;
+    private PaymentService paymentService;
 
     @Autowired
-    ItemBusinessService itemBusinessService;
+    private AddressService addressService;
+
+    @Autowired
+    private RestaurantService restaurantService;
+
 
     @CrossOrigin
-    @RequestMapping(method = RequestMethod.GET, value = "/order/coupon/{coupon_name}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<CouponDetailsResponse> getCouponByName(@PathVariable("coupon_name")final String coupon_name, @RequestHeader("authorization")final String authorization)
-            throws AuthorizationFailedException, CouponNotFoundException
-    {
+    @RequestMapping(
+            method = RequestMethod.GET,
+            path = "/order/coupon/{coupon_name}",
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<CouponDetailsResponse> getCouponByName(@PathVariable("coupon_name") final String couponName,
+                                                                 @RequestHeader("authorization") final String authorization)
+            throws AuthorizationFailedException, CouponNotFoundException {
+
+
         String accessToken = authorization.split("Bearer ")[1];
 
-        CouponEntity couponEntity = orderBusinessService.getCouponDetailsByName(coupon_name, accessToken);
+        customerService.getCustomer(accessToken);
 
-        CouponDetailsResponse couponDetailsResponse = new CouponDetailsResponse()
-                .couponName(couponEntity.getCouponName())
-                .id(UUID.fromString(couponEntity.getUuid()))
-                .percent(couponEntity.getPercent());
-        return new ResponseEntity<CouponDetailsResponse>(couponDetailsResponse, HttpStatus.OK);
+
+        final CouponEntity coupon = orderService.getCouponByCouponName(couponName);
+
+
+        CouponDetailsResponse couponDetailsResponse = new CouponDetailsResponse();
+        couponDetailsResponse.setId(UUID.fromString(coupon.getUuid()));
+        couponDetailsResponse.couponName(coupon.getCoupon_name());
+        couponDetailsResponse.percent(coupon.getPercent());
+
+        return new ResponseEntity<>(couponDetailsResponse, HttpStatus.OK);
     }
 
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.GET,path = "",produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<CustomerOrderResponse> pastOrders(@RequestHeader(value = "authorization")final String authorization )
-            throws AuthorizationFailedException
-    {
-        String accessToken = authorization.split("Bearer ")[1];
-
-        List<OrderEntity> orderEntities =  orderBusinessService.getOrdersByCustomer(accessToken);
-
-        List<OrderList> orderLists = new LinkedList<>();
-
-        if(orderEntities != null){
-            for(OrderEntity orderEntity:orderEntities){
-                List<OrderItemEntity> orderItemEntities = orderBusinessService.fetchItemDetails(orderEntity);
-
-                List<ItemQuantityResponse> itemQuantityResponseList = new LinkedList<>();
-                orderItemEntities.forEach(orderItemEntity -> {
-                    ItemQuantityResponseItem itemQuantityResponseItem = new ItemQuantityResponseItem()
-                            .itemName(orderItemEntity.getItemEntity().getItemName())
-                            .itemPrice(orderItemEntity.getItemEntity().getPrice())
-                            .id(UUID.fromString(orderItemEntity.getItemEntity().getUuid()))
-                            .type(ItemQuantityResponseItem.TypeEnum.valueOf(orderItemEntity.getItemEntity().getType().getValue()));
-
-                    ItemQuantityResponse itemQuantityResponse = new ItemQuantityResponse()
-                            .item(itemQuantityResponseItem)
-                            .quantity(orderItemEntity.getQuantity())
-                            .price(orderItemEntity.getPrice());
-                    itemQuantityResponseList.add(itemQuantityResponse);
-                });
-                OrderListAddressState orderListAddressState = new OrderListAddressState()
-                        .id(UUID.fromString(orderEntity.getAddress().getState().getUuid()))
-                        .stateName(orderEntity.getAddress().getState().getStateName());
-
-                OrderListAddress orderListAddress = new OrderListAddress()
-                        .id(UUID.fromString(orderEntity.getAddress().getUuid()))
-                        .flatBuildingName(orderEntity.getAddress().getFlatBuildNumber())
-                        .locality(orderEntity.getAddress().getLocality())
-                        .city(orderEntity.getAddress().getCity())
-                        .pincode(orderEntity.getAddress().getPincode())
-                        .state(orderListAddressState);
-
-                OrderListCoupon orderListCoupon = new OrderListCoupon()
-                        .couponName(orderEntity.getCoupon().getCouponName())
-                        .id(UUID.fromString(orderEntity.getCoupon().getUuid()))
-                        .percent(orderEntity.getCoupon().getPercent());
-
-                OrderListCustomer orderListCustomer = new OrderListCustomer()
-                        .id(UUID.fromString(orderEntity.getCustomer().getUuid()))
-                        .firstName(orderEntity.getCustomer().getFirstname())
-                        .lastName(orderEntity.getCustomer().getLastname())
-                        .emailAddress(orderEntity.getCustomer().getEmail())
-                        .contactNumber(orderEntity.getCustomer().getContact_number());
-
-                OrderListPayment orderListPayment = new OrderListPayment()
-                        .id(UUID.fromString(orderEntity.getPayment().getUuid()))
-                        .paymentName(orderEntity.getPayment().getPaymentName());
-
-                OrderList orderList = new OrderList()
-                        .id(UUID.fromString(orderEntity.getUuid()))
-                        .itemQuantities(itemQuantityResponseList)
-                        .address(orderListAddress)
-                        .bill(BigDecimal.valueOf(orderEntity.getBill()))
-                        .date(String.valueOf(orderEntity.getDate()))
-                        .discount(BigDecimal.valueOf(orderEntity.getDiscount()))
-                        .coupon(orderListCoupon)
-                        .customer(orderListCustomer)
-                        .payment(orderListPayment);
-                orderLists.add(orderList);
-            }
-
-            CustomerOrderResponse customerOrderResponse = new CustomerOrderResponse()
-                    .orders(orderLists);
-            return new ResponseEntity<CustomerOrderResponse>(customerOrderResponse,HttpStatus.OK);
-        }else {
-            return new ResponseEntity<CustomerOrderResponse>(new CustomerOrderResponse(),HttpStatus.OK);
-        }
-    }
 
     @CrossOrigin
-    @RequestMapping(method = RequestMethod.POST,path = "",consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<SaveOrderResponse> saveOrder(@RequestHeader(value = "authorization")final String authorization, @RequestBody(required = false) final SaveOrderRequest saveOrderRequest) throws AuthorizationFailedException, PaymentMethodNotFoundException, AddressNotFoundException, RestaurantNotFoundException, CouponNotFoundException ,ItemNotFoundException{
+    @RequestMapping(method = RequestMethod.POST,
+            path = "/order",
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<SaveOrderResponse> saveOrder(@RequestHeader("authorization") final String authorization,
+                                                       @RequestBody final SaveOrderRequest saveOrderRequest)
+            throws AuthorizationFailedException, AddressNotFoundException, CouponNotFoundException,
+            PaymentMethodNotFoundException, RestaurantNotFoundException, ItemNotFoundException {
+
 
         String accessToken = authorization.split("Bearer ")[1];
 
-        CustomerEntity customerEntity = customerBusinessService.getCustomer(accessToken);
+        final CustomerEntity customer = customerService.getCustomer(accessToken);
 
-        CouponEntity couponEntity = orderBusinessService.getCouponByCouponId(saveOrderRequest.getCouponId().toString());
 
-        PaymentEntity paymentEntity = paymentBusinessService.getPaymentByPaymentId(saveOrderRequest.getPaymentId().toString());
+        String addressUuid = saveOrderRequest.getAddressId();
+        String paymentUuid = saveOrderRequest.getPaymentId().toString();
+        Double bill = saveOrderRequest.getBill().doubleValue();
+        Double discount = saveOrderRequest.getDiscount().doubleValue();
+        String couponUuid = saveOrderRequest.getCouponId().toString();
+        String restaurantUuid = saveOrderRequest.getRestaurantId().toString();
 
-        AddressEntity addressEntity = addressBusinessService.getAddressByAddressId(saveOrderRequest.getAddressId(),customerEntity);
 
-        RestaurantEntity restaurantEntity = restaurantBusinessService.restaurantByuuid(saveOrderRequest.getRestaurantId().toString());
+        CouponEntity coupon = orderService.getCouponByCouponId(couponUuid);
+        PaymentEntity payment = paymentService.getPaymentByUUID(paymentUuid);
+        AddressEntity address = addressService.getAddressByUUID(addressUuid, customer);
+        RestaurantEntity restaurant = restaurantService.restaurantByUUID(restaurantUuid);
 
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        OrderEntity orderEntity = new OrderEntity();
-        orderEntity.setUuid(UUID.randomUUID().toString());
-        orderEntity.setBill(saveOrderRequest.getBill().floatValue());
-        orderEntity.setDate(timestamp);
-        orderEntity.setCustomer(customerEntity);
-        orderEntity.setDiscount(saveOrderRequest.getDiscount().doubleValue());
-        orderEntity.setPayment(paymentEntity);
-        orderEntity.setAddress(addressEntity);
-        orderEntity.setRestauarnt(restaurantEntity);
-        orderEntity.setCoupon(couponEntity);
+        OrderEntity order = new OrderEntity();
+        order.setBill(bill);
+        order.setCoupon(coupon);
+        order.setDiscount(discount);
+        order.setDate(new Date());
+        order.setPayment(payment);
+        order.setCustomer(customer);
+        order.setAddress(address);
+        order.setRestaurant(restaurant);
+        order.setUuid(UUID.randomUUID().toString());
 
-        OrderEntity savedOrderEntity = orderBusinessService.saveOrder(customerEntity, couponEntity, paymentEntity, addressEntity, restaurantEntity, orderEntity, accessToken);
+        OrderEntity savedOrder = orderService.saveOrder(order);
 
-        List<ItemQuantity> itemQuantities = saveOrderRequest.getItemQuantities();
-        for(ItemQuantity itemQuantity : itemQuantities) {
-
+        for (ItemQuantity itemQuantity : saveOrderRequest.getItemQuantities()) {
             OrderItemEntity orderItemEntity = new OrderItemEntity();
-
-            ItemEntity itemEntity = itemBusinessService.getItemById(itemQuantity.getItemId().toString());
-
-            orderItemEntity.setItemEntity(itemEntity);
-            orderItemEntity.setOrderEntity(orderEntity);
-            orderItemEntity.setPrice(itemQuantity.getPrice());
+            orderItemEntity.setOrder(order);
+            ItemEntity item = itemService.getItemByUuid(itemQuantity.getItemId().toString());
+            orderItemEntity.setItem(item);
             orderItemEntity.setQuantity(itemQuantity.getQuantity());
+            orderItemEntity.setPrice(itemQuantity.getPrice());
 
-            OrderItemEntity savedOrderItem = orderBusinessService.saveOrderItem(orderItemEntity);
+            orderService.saveOrderItem(orderItemEntity);
         }
 
-        SaveOrderResponse saveOrderResponse = new SaveOrderResponse()
-                .id(savedOrderEntity.getUuid())
-                .status("ORDER SUCCESSFULLY PLACED");
-        return new ResponseEntity<SaveOrderResponse>(saveOrderResponse,HttpStatus.CREATED);
+        final SaveOrderResponse saveOrderResponse = new SaveOrderResponse();
+        saveOrderResponse.setId(savedOrder.getUuid());
+        saveOrderResponse.status("ORDER SUCCESSFULLY PLACED");
+        return new ResponseEntity<>(saveOrderResponse, HttpStatus.CREATED);
     }
+
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET,
+            path = "/order",
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<CustomerOrderResponse> getPreviousOrders(
+            @RequestHeader("authorization") final String authorization)
+            throws AuthorizationFailedException {
+
+
+        String accessToken = authorization.split("Bearer ")[1];
+
+        final CustomerEntity customer = customerService.getCustomer(accessToken);
+
+
+        final List<OrderList> orderList = orderService.getOrdersByCustomers(customer.getUuid())
+                .stream()
+                .sorted(Comparator.comparing(OrderEntity::getDate)) //Reorder based on date of order creation
+                .flatMap((Function<OrderEntity, Stream<OrderList>>) ordersEntity -> Stream.of(prepareOrderListObject(ordersEntity)))
+                .collect(Collectors.toList());
+
+
+        //Return the response payload
+        CustomerOrderResponse customerOrderResponse = new CustomerOrderResponse();
+        customerOrderResponse.orders(orderList);
+        return new ResponseEntity<>(customerOrderResponse, HttpStatus.OK);
+    }
+
+
+    private OrderList prepareOrderListObject(final OrderEntity orderEntity) {
+        final OrderList orderList = new OrderList();
+        orderList.id(UUID.fromString(orderEntity.getUuid()));
+        orderList.bill( BigDecimal.valueOf(orderEntity.getBill()));
+        orderList.discount( BigDecimal.valueOf(orderEntity.getDiscount()));
+        orderList.date(orderEntity.getDate().toString());
+
+        orderList.coupon(prepareOrderListCoupon(orderEntity));
+        orderList.customer(prepareOrderListCustomer(orderEntity.getCustomer()));
+        orderList.address(prepareOrderListAddress(orderEntity.getAddress()));
+
+        return orderList;
+    }
+
+
+    private OrderListAddress prepareOrderListAddress(final AddressEntity address) {
+        final OrderListAddress orderListAddress = new OrderListAddress();
+        orderListAddress.city(address.getCity());
+        orderListAddress.flatBuildingName(address.getFlatBuilNumber());
+        orderListAddress.id(UUID.fromString(address.getUuid()));
+        orderListAddress.locality(address.getLocality());
+        orderListAddress.pincode(address.getPincode());
+        orderListAddress.setState(prepareOrderListAddressState(address.getState()));
+        return orderListAddress;
+    }
+
+
+    private OrderListAddressState prepareOrderListAddressState(final StateEntity state) {
+        OrderListAddressState orderListAddressState = new OrderListAddressState();
+        orderListAddressState.setStateName(state.getStateName());
+        orderListAddressState.setId(UUID.fromString(state.getUuid()));
+        return orderListAddressState;
+    }
+
+
+    private OrderListCustomer prepareOrderListCustomer(final CustomerEntity customer) {
+        final OrderListCustomer orderListCustomer = new OrderListCustomer();
+        orderListCustomer.setId(UUID.fromString(customer.getUuid()));
+        orderListCustomer.setFirstName(customer.getFirstName());
+        orderListCustomer.setLastName(customer.getLastName());
+        orderListCustomer.setContactNumber(customer.getContactnumber());
+        orderListCustomer.setEmailAddress(customer.getEmail());
+        return orderListCustomer;
+    }
+
+
+    private OrderListCoupon prepareOrderListCoupon(final OrderEntity orderEntity) {
+        final CouponEntity couponEntity = orderEntity.getCoupon();
+        OrderListCoupon orderListCoupon = new OrderListCoupon();
+        orderListCoupon.setCouponName(couponEntity.getCoupon_name());
+        orderListCoupon.setId(UUID.fromString(couponEntity.getUuid()));
+        orderListCoupon.setPercent(couponEntity.getPercent());
+        return orderListCoupon;
+    }
+
 }

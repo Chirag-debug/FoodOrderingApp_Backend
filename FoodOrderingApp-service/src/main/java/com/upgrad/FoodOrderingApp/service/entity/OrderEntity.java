@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -33,7 +34,7 @@ public class OrderEntity implements Serializable {
     private double discount;
 
     @Column(name = "date")
-    private Timestamp date;
+    private Date date;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "coupon_id", nullable = false)
@@ -111,11 +112,11 @@ public class OrderEntity implements Serializable {
         this.discount = discount;
     }
 
-    public Timestamp getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(Timestamp date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 

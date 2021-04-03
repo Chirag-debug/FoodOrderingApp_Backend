@@ -1,7 +1,7 @@
 package com.upgrad.FoodOrderingApp.api.controller;
 
 import com.upgrad.FoodOrderingApp.api.model.*;
-import com.upgrad.FoodOrderingApp.service.businness.CustomerBusinessService;
+import com.upgrad.FoodOrderingApp.service.businness.CustomerService;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerEntity;
 import com.upgrad.FoodOrderingApp.service.entity.CustomerAuthEntity;
 import com.upgrad.FoodOrderingApp.service.exception.AuthenticationFailedException;
@@ -27,7 +27,7 @@ import java.util.Base64;
 public class CustomerController {
 
     @Autowired
-    CustomerBusinessService customerBusinessService;
+    CustomerService customerService;
 
     @Autowired
     Utility utility;
@@ -37,16 +37,16 @@ public class CustomerController {
 public ResponseEntity<SignupCustomerResponse> signup(@RequestBody(required = false)final SignupCustomerRequest signupCustomerRequest) throws SignUpRestrictedException
 {
     CustomerEntity customerEntity = new CustomerEntity();
-    customerEntity.setFirstname(signupCustomerRequest.getFirstName());
-    customerEntity.setLastname(signupCustomerRequest.getFirstName());
-    customerEntity.setContact_number(signupCustomerRequest.getContactNumber());
+    customerEntity.setFirstName(signupCustomerRequest.getFirstName());
+    customerEntity.setLastName(signupCustomerRequest.getFirstName());
+    customerEntity.setContactnumber(signupCustomerRequest.getContactNumber());
     customerEntity.setEmail(signupCustomerRequest.getEmailAddress());
     customerEntity.setPassword(signupCustomerRequest.getPassword());
     customerEntity.setUuid(UUID.randomUUID().toString());
 
     utility.isValidSignupRequest(customerEntity);
 
-    CustomerEntity createdCustomer = customerBusinessService.signup(customerEntity);
+    CustomerEntity createdCustomer = customerService.saveCustomer(customerEntity);
 
     SignupCustomerResponse signupCustomerResponse = new SignupCustomerResponse().id(createdCustomer.getUuid()).status("CUSTOMER SUCCESSFULLY REGISTERED");
 
@@ -60,26 +60,25 @@ public ResponseEntity<LoginResponse> login(@RequestBody(required = false) @Reque
 
     utility.isValidAuthorizationFormat(authorization);
 
-    byte[] authElement = Base64.getDecoder().decode(authorization.split("Basic ")[1]);
-    String decodedAuth = new String(authElement);
-    String[] decodedAuthArray = decodedAuth.split(":");
+    byte[] decoded = Base64.getDecoder().decode(authorization.split("Basic ")[1]);
+    String decodedAuth = new String(decoded);
+    String[] decodedArray = decodedAuth.split(":");
 
-    CustomerAuthEntity customerAuthEntity = customerBusinessService.login(decodedAuthArray[0], decodedAuthArray[1]);
+
+    CustomerAuthEntity customerAuthEntity = customerService.authenticate(decodedArray[0], decodedArray[1]);
+    CustomerEntity customer = customerAuthEntity.getCustomer();
+
+    LoginResponse loginResponse = new LoginResponse();
+    loginResponse.setId(customer.getUuid());
+    loginResponse.setFirstName(customer.getFirstName());
+    loginResponse.setLastName(customer.getLastName());
+    loginResponse.setEmailAddress(customer.getEmail());
+    loginResponse.setContactNumber(customer.getContactnumber());
+    loginResponse.setMessage("LOGGED IN SUCCESSFULLY");
 
     HttpHeaders headers = new HttpHeaders();
     headers.add("access-token", customerAuthEntity.getAccessToken());
-
-    List<String> header = new ArrayList<>();
-    header.add("access-token");
-    headers.setAccessControlExposeHeaders(header);
-
-    LoginResponse loginResponse = new LoginResponse().id(customerAuthEntity.getCustomer().getUuid())
-            .contactNumber(customerAuthEntity.getCustomer().getContact_number())
-            .firstName(customerAuthEntity.getCustomer().getFirstname())
-            .lastName(customerAuthEntity.getCustomer().getLastname())
-            .emailAddress(customerAuthEntity.getCustomer().getEmail())
-            .message("LOGGED IN SUCCESSFULLY");
-
+    headers.add("access-control-expose-headers", "access-token");
     return new ResponseEntity<LoginResponse>(loginResponse, headers, HttpStatus.OK);
 }
 
@@ -89,7 +88,7 @@ public ResponseEntity<LogoutResponse> logout( @RequestBody(required = false) @Re
 {
     String accessToken = authorization.split("Bearer ")[1];
 
-    CustomerAuthEntity customerAuthEntity = customerBusinessService.logout(accessToken);
+    CustomerAuthEntity customerAuthEntity = customerService.logout(accessToken);
 
     LogoutResponse logoutResponse = new LogoutResponse().id(customerAuthEntity.getCustomer().getUuid()).message("LOGGED OUT SUCCESSFULLY");
 
@@ -104,16 +103,16 @@ public ResponseEntity<UpdateCustomerResponse> updateCustomer(@RequestHeader("aut
 
     String accessToken = authorization.split("Bearer ")[1];
 
-    CustomerEntity customerToUpdateEntity = customerBusinessService.getCustomer(accessToken);
+    CustomerEntity customerToUpdateEntity = customerService.getCustomer(accessToken);
 
-    customerToUpdateEntity.setFirstname(updateCustomerRequest.getFirstName());
-    customerToUpdateEntity.setLastname(updateCustomerRequest.getLastName());
+    customerToUpdateEntity.setFirstName(updateCustomerRequest.getFirstName());
+    customerToUpdateEntity.setLastName(updateCustomerRequest.getLastName());
 
-    CustomerEntity updatedCustomerEntity = customerBusinessService.updateCustomer(customerToUpdateEntity, accessToken);
+    CustomerEntity updatedCustomerEntity = customerService.updateCustomer(customerToUpdateEntity);
 
     UpdateCustomerResponse updateCustomerResponse = new UpdateCustomerResponse()
-            .firstName(updatedCustomerEntity.getFirstname())
-            .lastName(updatedCustomerEntity.getLastname())
+            .firstName(updatedCustomerEntity.getFirstName())
+            .lastName(updatedCustomerEntity.getLastName())
             .id(updatedCustomerEntity.getUuid())
             .status("CUSTOMER DETAILS UPDATED SUCCESSFULLY");
 
@@ -131,9 +130,9 @@ public ResponseEntity<UpdatePasswordResponse> updatePassword(@RequestHeader("aut
     String oldPassword = updatePasswordRequest.getOldPassword();
     String newPassword = updatePasswordRequest.getNewPassword();
 
-    CustomerEntity customerToUpdateEntity = customerBusinessService.getCustomer(accessToken);
+    CustomerEntity customerToUpdateEntity = customerService.getCustomer(accessToken);
 
-    CustomerEntity updatedCustomerEntity = customerBusinessService.updatePassword(accessToken, customerToUpdateEntity, oldPassword, newPassword);
+    CustomerEntity updatedCustomerEntity = customerService.updateCustomerPassword(oldPassword, newPassword, customerToUpdateEntity);
 
     UpdatePasswordResponse updatePasswordResponse = new UpdatePasswordResponse()
             .id(updatedCustomerEntity.getUuid())
