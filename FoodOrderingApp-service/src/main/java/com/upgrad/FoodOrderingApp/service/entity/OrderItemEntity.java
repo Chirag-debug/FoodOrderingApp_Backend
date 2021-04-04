@@ -37,7 +37,7 @@ public class OrderItemEntity implements Serializable {
     @Column(name = "quantity")
     private Integer quantity;
 
-    @Column(name = "quantity")
+    @Column(name = "price")
     @NotNull
     private Integer price;
 
